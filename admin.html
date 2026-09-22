@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PromptPix Admin Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2325c9a6'/%3E%3Ctext x='50' y='67' text-anchor='middle' font-size='60' fill='white'%3EP%3C/text%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#f4faf8;color:#17221f}
+header{height:70px;background:#fff;border-bottom:1px solid #e1ebe8;display:flex;align-items:center;justify-content:space-between;padding:0 5%;position:sticky;top:0;z-index:5}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800}.logo{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#25c9a6,#67dfff);font-size:21px}.sub{display:block;color:#25b999;font-size:8px;letter-spacing:1px}
+.btn{border:0;border-radius:10px;background:#25c9a6;color:#fff;padding:11px 17px;font-weight:700;cursor:pointer}.logout{background:#eef4f2;color:#26332f}
+main{max-width:1200px;margin:auto;padding:28px 5% 60px}.top{display:flex;justify-content:space-between;align-items:end;margin-bottom:22px}.top h1{margin:0;font-size:30px}.muted{color:#75827e;font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:25px}.stat{background:#fff;border:1px solid #e1ebe8;border-radius:17px;padding:20px}.stat b{font-size:28px;display:block;margin-top:7px}
+.panel{background:#fff;border:1px solid #e1ebe8;border-radius:20px;padding:22px;margin-bottom:22px}.panel h2{margin-top:0;font-size:19px}.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.form input,.form textarea,.form select{width:100%;padding:12px;border:1px solid #dce8e4;border-radius:10px;background:#fff;font:inherit}.form textarea{min-height:145px;resize:vertical}.full{grid-column:1/-1}.row{display:flex;gap:10px;align-items:center;margin-top:13px}.msg{font-size:13px;color:#5f6d68}
+.tablewrap{overflow:auto}.item{display:flex;align-items:center;gap:15px;border-top:1px solid #edf2f0;padding:13px 0}.thumb{width:70px;height:55px;border-radius:9px;overflow:hidden;background:#edf7f4;display:grid;place-items:center;color:#82908b;flex:none}.thumb img{width:100%;height:100%;object-fit:cover}.iteminfo{flex:1;min-width:180px}.iteminfo b{display:block}.iteminfo span{font-size:12px;color:#7a8783}.danger{background:#fff0f0;color:#bd3e3e}.login{max-width:430px;margin:90px auto;padding:25px;background:#fff;border:1px solid #e1ebe8;border-radius:22px}.login h1{margin-top:0}.login input{width:100%;padding:13px;margin:7px 0;border:1px solid #dce8e4;border-radius:10px}.hidden{display:none!important}
+@media(max-width:700px){.stats{grid-template-columns:1fr}.form{grid-template-columns:1fr}.full{grid-column:auto}.top{align-items:start;gap:15px;flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+<div class="brand"><div class="logo">✦</div><div>PromptPix<span class="sub">ADMIN DASHBOARD</span></div></div>
+<button class="btn logout hidden" id="logout">Logout</button>
+</header>
+
+<section id="loginBox" class="login">
+<h1>Admin Login</h1>
+<p class="muted">Sign in with the Firebase administrator account.</p>
+<input id="email" type="email" placeholder="Admin email">
+<input id="password" type="password" placeholder="Password">
+<button class="btn" id="loginBtn">Login</button>
+<p id="loginMsg" class="msg"></p>
+</section>
+
+<main id="dashboard" class="hidden">
+<div class="top"><div><h1>Prompt Dashboard</h1><div class="muted" id="signedIn"></div></div><a href="./" style="color:#20aa8e;text-decoration:none;font-weight:700">← View Website</a></div>
+
+<div class="stats">
+<div class="stat"><span class="muted">Published</span><b id="publishedCount">0</b></div>
+<div class="stat"><span class="muted">Total Prompts</span><b id="totalCount">0</b></div>
+<div class="stat"><span class="muted">Account</span><b style="font-size:16px" id="accountType">Checking…</b></div>
+</div>
+
+<section class="panel">
+<h2>Create & Publish Prompt</h2>
+<div class="form">
+<input id="title" placeholder="Image title">
+<select id="category"><option>Portrait</option><option>Luxury</option><option>Baby</option><option>Fantasy</option><option>Couple</option><option>Anime</option><option>AI</option></select>
+<textarea id="prompt" class="full" placeholder="Enter the complete AI image prompt"></textarea>
+<input id="imageUrl" class="full" type="url" placeholder="Generated image URL">
+</div>
+<div class="row"><button class="btn" id="publish">Publish Prompt</button><span class="msg" id="publishMsg"></span></div>
+<p class="muted">Image URL is temporary in this dashboard. The secure AI image-generation + Firebase Storage flow can be connected next without exposing an API key.</p>
+</section>
+
+<section class="panel">
+<h2>Published Prompts</h2>
+<div id="list" class="tablewrap"><div class="muted">Loading…</div></div>
+</section>
+</main>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+import {getFirestore,collection,query,where,getDocs,addDoc,serverTimestamp,doc,deleteDoc} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+const firebaseConfig={
+apiKey:"AIzaSyCn7GUkOaFO4l0x1zM5mwW4hFkW2ISxR10",
+authDomain:"shanpalia-apk-hub.firebaseapp.com",
+projectId:"shanpalia-apk-hub",
+storageBucket:"shanpalia-apk-hub.firebasestorage.app",
+messagingSenderId:"270953807883",
+appId:"1:270953807883:web:c900f4409938f16477870e",
+measurementId:"G-7BMQEGPY8C"
+};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+let user=null;
+
+async function checkAdmin(u){
+ if(!u)return false;
+ const token=await u.getIdTokenResult(true);
+ return token.claims.admin===true;
+}
+onAuthStateChanged(auth,async u=>{
+ user=u;
+ if(!u){$("dashboard").classList.add("hidden");$("loginBox").classList.remove("hidden");$("logout").classList.add("hidden");return;}
+ try{
+   if(!(await checkAdmin(u))){$("loginMsg").textContent="This account is not authorized as PromptPix admin.";await signOut(auth);return;}
+   $("loginBox").classList.add("hidden");$("dashboard").classList.remove("hidden");$("logout").classList.remove("hidden");
+   $("signedIn").textContent="Signed in as "+u.email;$("accountType").textContent="Administrator";load();
+ }catch(e){$("loginMsg").textContent=e.message}
+});
+$("loginBtn").onclick=async()=>{
+ $("loginMsg").textContent="";
+ try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);await auth.currentUser.getIdToken(true);}
+ catch(e){$("loginMsg").textContent=e.message}
+};
+$("logout").onclick=()=>signOut(auth);
+
+async function load(){
+ try{
+  const snap=await getDocs(query(collection(db,"prompts"),where("published","==",true)));
+  const rows=[];snap.forEach(d=>rows.push({id:d.id,...d.data()}));
+  rows.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  $("publishedCount").textContent=rows.length;$("totalCount").textContent=rows.length;
+  $("list").innerHTML=rows.length?rows.map(x=>'<div class="item"><div class="thumb">'+(x.imageUrl?'<img src="'+esc(x.imageUrl)+'">':'No image')+'</div><div class="iteminfo"><b>'+esc(x.title)+'</b><span>'+esc(x.category||"AI")+'</span></div><button class="btn danger" data-delete="'+x.id+'">Delete</button></div>').join(""):'<div class="muted">No published prompts yet.</div>';
+  document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>removePrompt(b.dataset.delete));
+ }catch(e){$("list").innerHTML='<div class="msg">Unable to load prompts: '+esc(e.message)+'</div>'}
+}
+async function removePrompt(id){
+ if(!confirm("Delete this published prompt?"))return;
+ try{await deleteDoc(doc(db,"prompts",id));await load()}catch(e){alert(e.message)}
+}
+$("publish").onclick=async()=>{
+ const msg=$("publishMsg");msg.textContent="";
+ if(!$("title").value.trim()||!$("prompt").value.trim()||!$("imageUrl").value.trim()){msg.textContent="Title, prompt and image URL are required.";return}
+ try{
+  await addDoc(collection(db,"prompts"),{title:$("title").value.trim(),category:$("category").value,prompt:$("prompt").value.trim(),imageUrl:$("imageUrl").value.trim(),published:true,createdAt:serverTimestamp(),createdBy:user.uid});
+  $("title").value="";$("prompt").value="";$("imageUrl").value="";msg.textContent="Published ✓";await load();
+ }catch(e){msg.textContent=e.message}
+};
+</script>
+</body>
+</html>
