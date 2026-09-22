@@ -47,10 +47,11 @@ main{max-width:1200px;margin:auto;padding:28px 5% 60px}.top{display:flex;justify
 <input id="title" placeholder="Image title">
 <select id="category"><option>Portrait</option><option>Luxury</option><option>Baby</option><option>Fantasy</option><option>Couple</option><option>Anime</option><option>AI</option></select>
 <textarea id="prompt" class="full" placeholder="Enter the complete AI image prompt"></textarea>
-<input id="imageUrl" class="full" type="url" placeholder="Generated image URL">
+<div class="full row" style="margin-top:0"><button class="btn" id="generate">Generate Image</button><span class="msg" id="generateMsg"></span></div>
+<div id="preview" class="full hidden" style="margin-top:10px"><div class="muted" style="margin-bottom:8px">Preview</div><img id="previewImg" alt="Generated preview" style="width:min(520px,100%);border-radius:16px;border:1px solid #dce8e4;display:block"></div>
 </div>
-<div class="row"><button class="btn" id="publish">Publish Prompt</button><span class="msg" id="publishMsg"></span></div>
-<p class="muted">Image URL is temporary in this dashboard. The secure AI image-generation + Firebase Storage flow can be connected next without exposing an API key.</p>
+<div class="row"><button class="btn" id="publish">Publish Prompt</button><button class="btn logout" id="regenerate">Regenerate</button><span class="msg" id="publishMsg"></span></div>
+<p class="muted">Generate creates the image securely through the backend. Publishing uploads the generated image to Supabase Storage and saves the public URL in Firestore.</p>
 </section>
 
 <section class="panel">
@@ -63,6 +64,8 @@ main{max-width:1200px;margin:auto;padding:28px 5% 60px}.top{display:flex;justify
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 import {getFirestore,collection,query,where,getDocs,addDoc,serverTimestamp,doc,deleteDoc} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+import {getFunctions,httpsCallable} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-functions.js";
+import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 
 const firebaseConfig={
 apiKey:"AIzaSyCn7GUkOaFO4l0x1zM5mwW4hFkW2ISxR10",
@@ -73,7 +76,12 @@ messagingSenderId:"270953807883",
 appId:"1:270953807883:web:c900f4409938f16477870e",
 measurementId:"G-7BMQEGPY8C"
 };
-const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),functions=getFunctions(app);
+const generateImage=httpsCallable(functions,"generatePromptPixImage");
+const SUPABASE_URL="https://ralinnuegsbuvlhwpzln.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_pXsTbFOseqm5uuA0hzqSzQ_UJxdvQi9";
+const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let generatedBlob=null;
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 let user=null;
@@ -112,14 +120,51 @@ async function removePrompt(id){
  if(!confirm("Delete this published prompt?"))return;
  try{await deleteDoc(doc(db,"prompts",id));await load()}catch(e){alert(e.message)}
 }
+async function generatePreview(){
+ const msg=$("generateMsg"),btn=$("generate");
+ const prompt=$("prompt").value.trim();
+ if(!prompt){msg.textContent="Enter an image prompt first.";return;}
+ btn.disabled=true;msg.textContent="Generating image…";
+ try{
+  const result=await generateImage({prompt});
+  const data=result.data||{};
+  if(!data.imageBase64) throw new Error("No image was returned.");
+  const bytes=Uint8Array.from(atob(data.imageBase64),c=>c.charCodeAt(0));
+  generatedBlob=new Blob([bytes],{type:data.mimeType||"image/png"});
+  $("previewImg").src=URL.createObjectURL(generatedBlob);
+  $("preview").classList.remove("hidden");
+  msg.textContent="Image generated. Review it, then publish.";
+ }catch(e){console.error(e);msg.textContent=e.message||"Image generation failed.";}
+ finally{btn.disabled=false;}
+}
+$("generate").onclick=generatePreview;
+$("regenerate").onclick=generatePreview;
+
 $("publish").onclick=async()=>{
  const msg=$("publishMsg");msg.textContent="";
- if(!$("title").value.trim()||!$("prompt").value.trim()||!$("imageUrl").value.trim()){msg.textContent="Title, prompt and image URL are required.";return}
+ if(!user){msg.textContent="Please sign in again.";return;}
+ if(!$("title").value.trim()||!$("prompt").value.trim()){msg.textContent="Title and prompt are required.";return;}
+ if(!generatedBlob){msg.textContent="Generate an image first.";return;}
+ const btn=$("publish");btn.disabled=true;msg.textContent="Uploading image…";
  try{
-  await addDoc(collection(db,"prompts"),{title:$("title").value.trim(),category:$("category").value,prompt:$("prompt").value.trim(),imageUrl:$("imageUrl").value.trim(),published:true,createdAt:serverTimestamp(),createdBy:user.uid});
-  $("title").value="";$("prompt").value="";$("imageUrl").value="";msg.textContent="Published ✓";await load();
- }catch(e){msg.textContent=e.message}
-};
-</script>
+  const fileName="promptpix/"+Date.now()+"-"+crypto.randomUUID()+".png";
+  const upload=await supabase.storage.from("promptpix-images").upload(fileName,generatedBlob,{contentType:"image/png",upsert:false});
+  if(upload.error) throw upload.error;
+  const publicUrl=supabase.storage.from("promptpix-images").getPublicUrl(fileName).data.publicUrl;
+  await addDoc(collection(db,"prompts"),{
+   title:$("title").value.trim(),
+   category:$("category").value,
+   prompt:$("prompt").value.trim(),
+   imageUrl:publicUrl,
+   storagePath:fileName,
+   published:true,
+   createdAt:serverTimestamp(),
+   createdBy:user.uid
+  });
+  $("title").value="";$("prompt").value="";generatedBlob=null;$("preview").classList.add("hidden");
+  msg.textContent="Published ✓";await load();
+ }catch(e){console.error(e);msg.textContent=e.message||"Publish failed."}
+ finally{btn.disabled=false;}
+};</script>
 </body>
 </html>
