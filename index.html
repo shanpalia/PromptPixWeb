@@ -28,12 +28,13 @@ import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from
 import { getFirestore, collection, query, where, orderBy, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.firebasestorage.app",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCn7GUkOaFO4l0x1zM5mwW4hFkW2ISxR10",
+  authDomain: "shanpalia-apk-hub.firebaseapp.com",
+  projectId: "shanpalia-apk-hub",
+  storageBucket: "shanpalia-apk-hub.firebasestorage.app",
+  messagingSenderId: "270953807883",
+  appId: "1:270953807883:web:c900f4409938f16477870e",
+  measurementId: "G-7BMQEGPY8C"
 };
 const firebaseReady = !Object.values(firebaseConfig).some(v => String(v).startsWith("YOUR_"));
 let app, auth, db, currentUser=null, cat='All', prompts=[];
