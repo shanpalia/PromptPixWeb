@@ -25,7 +25,7 @@ footer{text-align:center;padding:25px;color:#87938f;font-size:12px}.modal{positi
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-import { getFirestore, collection, query, where, orderBy, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCn7GUkOaFO4l0x1zM5mwW4hFkW2ISxR10",
@@ -45,7 +45,7 @@ function active(x){document.querySelectorAll('.chip').forEach(b=>b.classList.rem
 async function loadPrompts(){
   prompts=[]; const grid=document.getElementById('grid');
   if(!firebaseReady){grid.innerHTML='<div class="empty"><b>Firebase is not connected yet.</b><span>Add your Firebase configuration to connect real content.</span></div>';document.getElementById('count').textContent='';return;}
-  try{const qy=query(collection(db,'prompts'),where('published','==',true),orderBy('createdAt','desc'));const snap=await getDocs(qy);snap.forEach(d=>prompts.push({id:d.id,...d.data()}));render();}
+  try{const qy=query(collection(db,'prompts'),where('published','==',true));const snap=await getDocs(qy);snap.forEach(d=>prompts.push({id:d.id,...d.data()}));prompts.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));render();}
   catch(e){console.error(e);grid.innerHTML='<div class="empty"><b>Unable to load published prompts.</b><span>Check your Firebase Firestore configuration and rules.</span></div>';document.getElementById('count').textContent='';}
 }
 function render(){const q=(document.getElementById('q')?.value||'').toLowerCase();const a=prompts.filter(x=>(cat==='All'||x.category===cat)&&(`${x.title||''} ${x.category||''} ${x.prompt||''}`).toLowerCase().includes(q));document.getElementById('count').textContent=a.length+' published ideas';document.getElementById('grid').innerHTML=a.length?a.map(x=>`<article class="card"><div class="pic">${x.imageUrl?`<img src="${esc(x.imageUrl)}" alt="${esc(x.title)}">`:'<span class="noimage">Image unavailable</span>'}<span class="tag">${esc(x.category||'AI')}</span></div><div class="body"><h3>${esc(x.title)}</h3><p>${esc(x.prompt)}</p><div class="actions"><button class="use" data-id="${x.id}">Use This Image</button></div></div></article>`).join(''):'<div class="empty"><b>No published prompts yet.</b><span>Real content published from the Admin Panel will appear here.</span></div>';document.querySelectorAll('.use').forEach(b=>b.onclick=()=>show(prompts.find(x=>x.id===b.dataset.id)));}
