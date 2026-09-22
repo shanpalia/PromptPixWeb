@@ -79,9 +79,8 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&
 let user=null;
 
 async function checkAdmin(u){
- if(!u)return false;
- const token=await u.getIdTokenResult(true);
- return token.claims.admin===true;
+ if(!u) return false;
+ return u.email === "shanpalia786@gmail.com";
 }
 onAuthStateChanged(auth,async u=>{
  user=u;
