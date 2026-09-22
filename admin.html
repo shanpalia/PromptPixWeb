@@ -64,7 +64,6 @@ main{max-width:1200px;margin:auto;padding:28px 5% 60px}.top{display:flex;justify
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 import {getFirestore,collection,query,where,getDocs,addDoc,serverTimestamp,doc,deleteDoc} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-import {getFunctions,httpsCallable} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-functions.js";
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 
 const firebaseConfig={
@@ -76,8 +75,8 @@ messagingSenderId:"270953807883",
 appId:"1:270953807883:web:c900f4409938f16477870e",
 measurementId:"G-7BMQEGPY8C"
 };
-const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),functions=getFunctions(app);
-const generateImage=httpsCallable(functions,"generatePromptPixImage");
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const AI_ENDPOINT="https://promptpix-ai.YOUR-SUBDOMAIN.workers.dev";
 const SUPABASE_URL="https://ralinnuegsbuvlhwpzln.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhbGlubnVlZ3NidXZsaHdwemxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTU2NDIsImV4cCI6MjA5NTg3MTY0Mn0.hIec6UxRx5gzSMTi5oJ3_xXw3d1QKCmKsPF-stBwIFE";
 const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
@@ -126,8 +125,9 @@ async function generatePreview(){
  if(!prompt){msg.textContent="Enter an image prompt first.";return;}
  btn.disabled=true;msg.textContent="Generating image…";
  try{
-  const result=await generateImage({prompt});
-  const data=result.data||{};
+  const response=await fetch(AI_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
+  const data=await response.json();
+  if(!response.ok) throw new Error(data.error||"Image generation failed.");
   if(!data.imageBase64) throw new Error("No image was returned.");
   const bytes=Uint8Array.from(atob(data.imageBase64),c=>c.charCodeAt(0));
   generatedBlob=new Blob([bytes],{type:data.mimeType||"image/png"});
