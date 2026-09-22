@@ -55,7 +55,7 @@ async function adminPanel(){if(!currentUser){login();return;}document.getElement
 function closeModal(){document.getElementById('modal').classList.remove('open')}
 window.login=login;window.closeModal=closeModal;window.adminPanel=adminPanel;
 // Exactly 5 clicks/taps on the PromptPix title opens the Firebase admin login. This is only a hidden entry point, not security.
-let tapCount=0,tapTimer;document.getElementById('promptBrand').addEventListener('click',()=>{tapCount++;clearTimeout(tapTimer);tapTimer=setTimeout(()=>tapCount=0,1800);if(tapCount===5){tapCount=0;login();}});
+let tapCount=0,tapTimer;document.getElementById('promptBrand').addEventListener('click',()=>{tapCount++;clearTimeout(tapTimer);tapTimer=setTimeout(()=>tapCount=0,1800);if(tapCount===5){tapCount=0;window.location.href='admin.html';}});
 document.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{cat=b.dataset.cat;active(b);render()}));
 document.getElementById('q').addEventListener('input',render);loadPrompts();
 </script></body></html>
