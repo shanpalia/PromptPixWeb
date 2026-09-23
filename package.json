@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@huggingface/inference": "^4.13.6"
+  },
+  "devDependencies": {
+    "wrangler": "^4.39.0"
+  }
+}
