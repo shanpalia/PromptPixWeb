@@ -186,10 +186,21 @@ $("generateVideo").onclick=async()=>{
   })});
   const data=await response.json();
   console.log("PromptPix video response:", data);
-  if(!response.ok){
-    const provider = data.providerResponse ? " Provider response: " + JSON.stringify(data.providerResponse) : "";
-    throw new Error((data.error||"Video generation failed.") + provider);
-  }
+if(!response.ok){
+  console.error("FULL PROMPTPIX VIDEO ERROR:", data);
+
+  const detail =
+    data.detail ||
+    data.message ||
+    data.providerResponse ||
+    "";
+
+  throw new Error(
+    (data.error || "Video generation failed.") +
+    (detail ? " | " + (typeof detail === "string" ? detail : JSON.stringify(detail)) : "") +
+    " | HTTP " + response.status
+  );
+}
   const videoUrl = data.videoUrl || data.video || data.result?.video || data.result?.result?.video;
   if(!videoUrl){
     const keys = Object.keys(data || {}).join(", ");
