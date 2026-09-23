@@ -184,9 +184,18 @@ $("generateVideo").onclick=async()=>{
   const response=await fetch(AI_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
    type:"video",prompt,duration:Number($("videoDuration").value),ratio
   })});
-  const data=await response.json();if(!response.ok)throw new Error(data.error||"Video generation failed.");
-  if(!data.videoUrl)throw new Error("No video URL was returned.");
-  $("videoUrl").value=data.videoUrl;$("videoPreview").src=data.videoUrl;$("videoPreview").poster=$("videoThumbUrl").value.trim();$("videoPreviewBox").classList.remove("hidden");
+  const data=await response.json();
+  console.log("PromptPix video response:", data);
+  if(!response.ok){
+    const provider = data.providerResponse ? " Provider response: " + JSON.stringify(data.providerResponse) : "";
+    throw new Error((data.error||"Video generation failed.") + provider);
+  }
+  const videoUrl = data.videoUrl || data.video || data.result?.video || data.result?.result?.video;
+  if(!videoUrl){
+    const keys = Object.keys(data || {}).join(", ");
+    throw new Error("Worker returned no video URL. Response fields: " + (keys || "none") + ". Check that the latest Cloudflare Worker deployment is live.");
+  }
+  $("videoUrl").value=videoUrl;$("videoPreview").src=videoUrl;$("videoPreview").poster=$("videoThumbUrl").value.trim();$("videoPreviewBox").classList.remove("hidden");
   msg.textContent="Video generated ✓ Review it, then publish.";
  }catch(e){console.error(e);msg.textContent=e.message||"Video generation failed."}finally{btn.disabled=false}
 };
