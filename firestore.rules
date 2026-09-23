@@ -3,7 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /prompts/{promptId} {
-      // Homepage can read only published prompt documents.
+      // Homepage can read only published prompt documents, including videos.
       allow read: if resource.data.published == true;
 
       // Publishing must be restricted to an authenticated admin.
