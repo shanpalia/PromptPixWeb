@@ -28,6 +28,7 @@ export default {
     try {
       const body = await request.json();
       const type = String(body.type || "image").toLowerCase();
+      const type = String(body.type || "image").toLowerCase();
       const prompt = String(body.prompt || "").trim();
 
       if (!prompt) {
