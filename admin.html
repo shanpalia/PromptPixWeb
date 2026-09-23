@@ -11,10 +11,12 @@ header{height:70px;background:#fff;border-bottom:1px solid #e1ebe8;display:flex;
 .brand{display:flex;align-items:center;gap:10px;font-weight:800}.logo{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#25c9a6,#67dfff);font-size:21px}.sub{display:block;color:#25b999;font-size:8px;letter-spacing:1px}
 .btn{border:0;border-radius:10px;background:#25c9a6;color:#fff;padding:11px 17px;font-weight:700;cursor:pointer}.logout{background:#eef4f2;color:#26332f}
 main{max-width:1200px;margin:auto;padding:28px 5% 60px}.top{display:flex;justify-content:space-between;align-items:end;margin-bottom:22px}.top h1{margin:0;font-size:30px}.muted{color:#75827e;font-size:13px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:25px}.stat{background:#fff;border:1px solid #e1ebe8;border-radius:17px;padding:20px}.stat b{font-size:28px;display:block;margin-top:7px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:25px}.stat{background:#fff;border:1px solid #e1ebe8;border-radius:17px;padding:20px}.stat b{font-size:28px;display:block;margin-top:7px}
 .panel{background:#fff;border:1px solid #e1ebe8;border-radius:20px;padding:22px;margin-bottom:22px}.panel h2{margin-top:0;font-size:19px}.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.form input,.form textarea,.form select{width:100%;padding:12px;border:1px solid #dce8e4;border-radius:10px;background:#fff;font:inherit}.form textarea{min-height:145px;resize:vertical}.full{grid-column:1/-1}.row{display:flex;gap:10px;align-items:center;margin-top:13px}.msg{font-size:13px;color:#5f6d68}
-.tablewrap{overflow:auto}.item{display:flex;align-items:center;gap:15px;border-top:1px solid #edf2f0;padding:13px 0}.thumb{width:70px;height:55px;border-radius:9px;overflow:hidden;background:#edf7f4;display:grid;place-items:center;color:#82908b;flex:none}.thumb img{width:100%;height:100%;object-fit:cover}.iteminfo{flex:1;min-width:180px}.iteminfo b{display:block}.iteminfo span{font-size:12px;color:#7a8783}.danger{background:#fff0f0;color:#bd3e3e}.login{max-width:430px;margin:90px auto;padding:25px;background:#fff;border:1px solid #e1ebe8;border-radius:22px}.login h1{margin-top:0}.login input{width:100%;padding:13px;margin:7px 0;border:1px solid #dce8e4;border-radius:10px}.hidden{display:none!important}
-@media(max-width:700px){.stats{grid-template-columns:1fr}.form{grid-template-columns:1fr}.full{grid-column:auto}.top{align-items:start;gap:15px;flex-direction:column}}
+.tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}.tab{border:1px solid #dce8e4;background:#fff;border-radius:10px;padding:10px 15px;font-weight:700;cursor:pointer}.tab.active{background:#25c9a6;color:#fff;border-color:#25c9a6}
+.tablewrap{overflow:auto}.item{display:flex;align-items:center;gap:15px;border-top:1px solid #edf2f0;padding:13px 0}.thumb{width:70px;height:55px;border-radius:9px;overflow:hidden;background:#edf7f4;display:grid;place-items:center;color:#82908b;flex:none}.thumb img,.thumb video{width:100%;height:100%;object-fit:cover}.iteminfo{flex:1;min-width:180px}.iteminfo b{display:block}.iteminfo span{font-size:12px;color:#7a8783}.danger{background:#fff0f0;color:#bd3e3e}.login{max-width:430px;margin:90px auto;padding:25px;background:#fff;border:1px solid #e1ebe8;border-radius:22px}.login h1{margin-top:0}.login input{width:100%;padding:13px;margin:7px 0;border:1px solid #dce8e4;border-radius:10px}.hidden{display:none!important}
+.mediaPreview{margin-top:10px;padding:12px;border:1px dashed #cfe2dc;border-radius:14px;background:#fbfefd}.mediaPreview img,.mediaPreview video{width:min(560px,100%);display:block;border-radius:14px;border:1px solid #dce8e4;background:#0e1513}.notice{background:#f0faf7;border:1px solid #d8ece6;padding:12px;border-radius:12px;font-size:12px;color:#5a6964;line-height:1.5}
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}@media(max-width:700px){.stats{grid-template-columns:1fr}.form{grid-template-columns:1fr}.full{grid-column:auto}.top{align-items:start;gap:15px;flex-direction:column}}
 </style>
 </head>
 <body>
@@ -36,26 +38,51 @@ main{max-width:1200px;margin:auto;padding:28px 5% 60px}.top{display:flex;justify
 <div class="top"><div><h1>Prompt Dashboard</h1><div class="muted" id="signedIn"></div></div><div style="display:flex;gap:10px;align-items:center"><a href="./" class="btn" style="text-decoration:none;background:#e8f7f3;color:#158c76">⌂ Home</a><a href="./" class="btn" style="text-decoration:none">View Website ↗</a><button class="btn logout" id="topLogout">Logout</button></div></div>
 
 <div class="stats">
-<div class="stat"><span class="muted">Published</span><b id="publishedCount">0</b></div>
-<div class="stat"><span class="muted">Total Prompts</span><b id="totalCount">0</b></div>
+<div class="stat"><span class="muted">Published Images</span><b id="publishedCount">0</b></div>
+<div class="stat"><span class="muted">Published Videos</span><b id="videoCount">0</b></div>
+<div class="stat"><span class="muted">Total Content</span><b id="totalCount">0</b></div>
 <div class="stat"><span class="muted">Account</span><b style="font-size:16px" id="accountType">Checking…</b></div>
 </div>
 
 <section class="panel">
-<h2>Create & Publish Prompt</h2>
+<div class="tabs">
+<button class="tab active" id="imageTab">🖼️ Add Image Prompt</button>
+<button class="tab" id="videoTab">🎬 Add Video Prompt</button>
+</div>
+
+<div id="imageForm">
+<h2>Create & Publish Image Prompt</h2>
 <div class="form">
 <input id="title" placeholder="Image title">
 <select id="category"><option>Portrait</option><option>Luxury</option><option>Baby</option><option>Fantasy</option><option>Couple</option><option>Anime</option><option>AI</option></select>
 <textarea id="prompt" class="full" placeholder="Enter the complete AI image prompt"></textarea>
 <div class="full row" style="margin-top:0"><button class="btn" id="generate">Generate Image</button><span class="msg" id="generateMsg"></span></div>
-<div id="preview" class="full hidden" style="margin-top:10px"><div class="muted" style="margin-bottom:8px">Preview</div><img id="previewImg" alt="Generated preview" style="width:min(520px,100%);border-radius:16px;border:1px solid #dce8e4;display:block"></div>
+<div id="preview" class="full mediaPreview hidden"><div class="muted" style="margin-bottom:8px">Preview</div><img id="previewImg" alt="Generated preview"></div>
 </div>
-<div class="row"><button class="btn" id="publish">Publish Prompt</button><button class="btn logout" id="regenerate">Regenerate</button><span class="msg" id="publishMsg"></span></div>
-<p class="muted">Generate creates the image securely through the backend. Publishing uploads the generated image to Supabase Storage and saves the public URL in Firestore.</p>
+<div class="row"><button class="btn" id="publish">Publish Image Prompt</button><button class="btn logout" id="regenerate">Regenerate</button><span class="msg" id="publishMsg"></span></div>
+<div class="notice" style="margin-top:14px">Image generation uses the existing secure backend endpoint. AI provider keys remain server-side.</div>
+</div>
+
+<div id="videoForm" class="hidden">
+<h2>Create & Publish Video Prompt</h2>
+<div class="form">
+<input id="videoTitle" placeholder="Video title">
+<select id="videoCategory"><option>Video</option><option>Cinematic</option><option>Product</option><option>Portrait</option><option>Nature</option><option>Anime</option><option>Fantasy</option><option>Social</option><option>AI</option></select>
+<textarea id="videoPrompt" class="full" placeholder="Enter the complete AI video prompt"></textarea>
+<input id="videoUrl" type="url" class="full" placeholder="Video URL (MP4/WebM/HLS public URL)">
+<input id="videoThumbUrl" type="url" class="full" placeholder="Optional thumbnail image URL">
+<select id="videoDuration"><option value="3">3 seconds</option><option value="5" selected>5 seconds</option><option value="10">10 seconds</option><option value="15">15 seconds</option></select>
+<select id="videoRatio"><option value="16:9">16:9</option><option value="9:16">9:16</option><option value="1:1">1:1</option></select>
+<label class="full" style="display:flex;align-items:center;gap:9px"><input id="videoFeatured" type="checkbox" style="width:auto"> Featured video</label>
+<div class="full mediaPreview hidden" id="videoPreviewBox"><div class="muted" style="margin-bottom:8px">Preview</div><video id="videoPreview" controls playsinline preload="metadata"></video></div>
+</div>
+<div class="row"><button class="btn" id="previewVideo">Preview Video</button><button class="btn" id="publishVideo">Publish Video</button><span class="msg" id="videoMsg"></span></div>
+<div class="notice" style="margin-top:14px">For this first dashboard flow, the admin adds the generated video's real public URL. The homepage will immediately show published records where <b>type = video</b>.</div>
+</div>
 </section>
 
 <section class="panel">
-<h2>Published Prompts</h2>
+<h2>Published Content</h2>
 <div id="list" class="tablewrap"><div class="muted">Loading…</div></div>
 </section>
 </main>
@@ -80,15 +107,11 @@ const AI_ENDPOINT="https://promptpix-ai.shanpalia786.workers.dev";
 const SUPABASE_URL="https://ralinnuegsbuvlhwpzln.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhbGlubnVlZ3NidXZsaHdwemxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTU2NDIsImV4cCI6MjA5NTg3MTY0Mn0.hIec6UxRx5gzSMTi5oJ3_xXw3d1QKCmKsPF-stBwIFE";
 const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
-let generatedBlob=null;
+let generatedBlob=null,user=null;
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-let user=null;
 
-async function checkAdmin(u){
- if(!u) return false;
- return u.email === "shanpalia786@gmail.com";
-}
+async function checkAdmin(u){return !!u && u.email==="shanpalia786@gmail.com";}
 onAuthStateChanged(auth,async u=>{
  user=u;
  if(!u){$("dashboard").classList.add("hidden");$("loginBox").classList.remove("hidden");$("logout").classList.add("hidden");return;}
@@ -98,73 +121,75 @@ onAuthStateChanged(auth,async u=>{
    $("signedIn").textContent="Signed in as "+u.email;$("accountType").textContent="Administrator";load();
  }catch(e){$("loginMsg").textContent=e.message}
 });
-$("loginBtn").onclick=async()=>{
- $("loginMsg").textContent="";
- try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);await auth.currentUser.getIdToken(true);}
- catch(e){$("loginMsg").textContent=e.message}
-};
+$("loginBtn").onclick=async()=>{$("loginMsg").textContent="";try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);await auth.currentUser.getIdToken(true)}catch(e){$("loginMsg").textContent=e.message}};
 $("logout").onclick=()=>signOut(auth);$("topLogout").onclick=()=>signOut(auth);
+
+$("imageTab").onclick=()=>{ $("imageTab").classList.add("active");$("videoTab").classList.remove("active");$("imageForm").classList.remove("hidden");$("videoForm").classList.add("hidden"); };
+$("videoTab").onclick=()=>{ $("videoTab").classList.add("active");$("imageTab").classList.remove("active");$("videoForm").classList.remove("hidden");$("imageForm").classList.add("hidden"); };
 
 async function load(){
  try{
   const snap=await getDocs(query(collection(db,"prompts"),where("published","==",true)));
   const rows=[];snap.forEach(d=>rows.push({id:d.id,...d.data()}));
   rows.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-  $("publishedCount").textContent=rows.length;$("totalCount").textContent=rows.length;
-  $("list").innerHTML=rows.length?rows.map(x=>'<div class="item"><div class="thumb">'+(x.imageUrl?'<img src="'+esc(x.imageUrl)+'">':'No image')+'</div><div class="iteminfo"><b>'+esc(x.title)+'</b><span>'+esc(x.category||"AI")+'</span></div><button class="btn danger" data-delete="'+x.id+'">Delete</button></div>').join(""):'<div class="muted">No published prompts yet.</div>';
+  const images=rows.filter(x=>x.type!=="video"&&!x.videoUrl),videos=rows.filter(x=>x.type==="video"||x.videoUrl);
+  $("publishedCount").textContent=images.length;$("videoCount").textContent=videos.length;$("totalCount").textContent=rows.length;
+  $("list").innerHTML=rows.length?rows.map(x=>x.type==="video"||x.videoUrl
+    ?'<div class="item"><div class="thumb">'+(x.videoUrl?'<video src="'+esc(x.videoUrl)+'" muted playsinline preload="metadata"></video>':'Video')+'</div><div class="iteminfo"><b>'+esc(x.title)+'</b><span>🎬 '+esc(x.category||"Video")+' · '+esc(String(x.duration||5))+'s · '+esc(x.ratio||"16:9")+'</span></div><button class="btn danger" data-delete="'+x.id+'">Delete</button></div>'
+    :'<div class="item"><div class="thumb">'+(x.imageUrl?'<img src="'+esc(x.imageUrl)+'">':'No image')+'</div><div class="iteminfo"><b>'+esc(x.title)+'</b><span>🖼️ '+esc(x.category||"AI")+'</span></div><button class="btn danger" data-delete="'+x.id+'">Delete</button></div>').join("")
+    :'<div class="muted">No published content yet.</div>';
   document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>removePrompt(b.dataset.delete));
- }catch(e){$("list").innerHTML='<div class="msg">Unable to load prompts: '+esc(e.message)+'</div>'}
+ }catch(e){$("list").innerHTML='<div class="msg">Unable to load content: '+esc(e.message)+'</div>'}
 }
-async function removePrompt(id){
- if(!confirm("Delete this published prompt?"))return;
- try{await deleteDoc(doc(db,"prompts",id));await load()}catch(e){alert(e.message)}
-}
+async function removePrompt(id){if(!confirm("Delete this published item?"))return;try{await deleteDoc(doc(db,"prompts",id));await load()}catch(e){alert(e.message)}}
+
 async function generatePreview(){
- const msg=$("generateMsg"),btn=$("generate");
- const prompt=$("prompt").value.trim();
+ const msg=$("generateMsg"),btn=$("generate"),prompt=$("prompt").value.trim();
  if(!prompt){msg.textContent="Enter an image prompt first.";return;}
  btn.disabled=true;msg.textContent="Generating image…";
  try{
   const response=await fetch(AI_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
-  const data=await response.json();
-  if(!response.ok) throw new Error(data.error||"Image generation failed.");
-  if(!data.imageBase64) throw new Error("No image was returned.");
-  const bytes=Uint8Array.from(atob(data.imageBase64),c=>c.charCodeAt(0));
-  generatedBlob=new Blob([bytes],{type:data.mimeType||"image/png"});
-  $("previewImg").src=URL.createObjectURL(generatedBlob);
-  $("preview").classList.remove("hidden");
-  msg.textContent="Image generated. Review it, then publish.";
- }catch(e){console.error(e);msg.textContent=e.message||"Image generation failed.";}
- finally{btn.disabled=false;}
+  const data=await response.json();if(!response.ok)throw new Error(data.error||"Image generation failed.");if(!data.imageBase64)throw new Error("No image was returned.");
+  const bytes=Uint8Array.from(atob(data.imageBase64),c=>c.charCodeAt(0));generatedBlob=new Blob([bytes],{type:data.mimeType||"image/png"});
+  $("previewImg").src=URL.createObjectURL(generatedBlob);$("preview").classList.remove("hidden");msg.textContent="Image generated. Review it, then publish.";
+ }catch(e){console.error(e);msg.textContent=e.message||"Image generation failed."}finally{btn.disabled=false}
 }
-$("generate").onclick=generatePreview;
-$("regenerate").onclick=generatePreview;
+$("generate").onclick=generatePreview;$("regenerate").onclick=generatePreview;
 
 $("publish").onclick=async()=>{
- const msg=$("publishMsg");msg.textContent="";
- if(!user){msg.textContent="Please sign in again.";return;}
- if(!$("title").value.trim()||!$("prompt").value.trim()){msg.textContent="Title and prompt are required.";return;}
- if(!generatedBlob){msg.textContent="Generate an image first.";return;}
+ const msg=$("publishMsg");msg.textContent="";if(!user){msg.textContent="Please sign in again.";return}
+ if(!$("title").value.trim()||!$("prompt").value.trim()){msg.textContent="Title and prompt are required.";return}
+ if(!generatedBlob){msg.textContent="Generate an image first.";return}
  const btn=$("publish");btn.disabled=true;msg.textContent="Uploading image…";
  try{
   const fileName="promptpix/"+Date.now()+"-"+crypto.randomUUID()+".png";
   const upload=await supabase.storage.from("promptpix-images").upload(fileName,generatedBlob,{contentType:"image/png",upsert:false});
-  if(upload.error) throw upload.error;
-  const publicUrl=supabase.storage.from("promptpix-images").getPublicUrl(fileName).data.publicUrl;
+  if(upload.error)throw upload.error;const publicUrl=supabase.storage.from("promptpix-images").getPublicUrl(fileName).data.publicUrl;
+  await addDoc(collection(db,"prompts"),{title:$("title").value.trim(),category:$("category").value,prompt:$("prompt").value.trim(),imageUrl:publicUrl,published:true,createdAt:serverTimestamp(),createdBy:user.uid});
+  $("title").value="";$("prompt").value="";generatedBlob=null;$("preview").classList.add("hidden");msg.textContent="Published ✓";await load();
+ }catch(e){console.error(e);msg.textContent=e.message||"Publish failed."}finally{btn.disabled=false}
+};
+
+$("previewVideo").onclick=()=>{
+ const url=$("videoUrl").value.trim();if(!url){$("videoMsg").textContent="Enter a video URL first.";return}
+ $("videoPreview").src=url;$("videoPreview").poster=$("videoThumbUrl").value.trim();$("videoPreviewBox").classList.remove("hidden");$("videoMsg").textContent="Video preview loaded.";
+};
+$("videoUrl").addEventListener("input",()=>{const url=$("videoUrl").value.trim();if(url){$("videoPreview").src=url;$("videoPreview").poster=$("videoThumbUrl").value.trim();$("videoPreviewBox").classList.remove("hidden")}});
+$("publishVideo").onclick=async()=>{
+ const msg=$("videoMsg");msg.textContent="";if(!user){msg.textContent="Please sign in again.";return}
+ const title=$("videoTitle").value.trim(),prompt=$("videoPrompt").value.trim(),videoUrl=$("videoUrl").value.trim();
+ if(!title||!prompt||!videoUrl){msg.textContent="Title, prompt and video URL are required.";return}
+ const btn=$("publishVideo");btn.disabled=true;msg.textContent="Publishing video…";
+ try{
   await addDoc(collection(db,"prompts"),{
-   title:$("title").value.trim(),
-   category:$("category").value,
-   prompt:$("prompt").value.trim(),
-   imageUrl:publicUrl,
-   storagePath:fileName,
-   published:true,
-   createdAt:serverTimestamp(),
-   createdBy:user.uid
+   type:"video",title,category:$("videoCategory").value,prompt,videoUrl,thumbnailUrl:$("videoThumbUrl").value.trim()||null,
+   duration:Number($("videoDuration").value),ratio:$("videoRatio").value,featured:$("videoFeatured").checked,
+   published:true,createdAt:serverTimestamp(),createdBy:user.uid
   });
-  $("title").value="";$("prompt").value="";generatedBlob=null;$("preview").classList.add("hidden");
-  msg.textContent="Published ✓";await load();
- }catch(e){console.error(e);msg.textContent=e.message||"Publish failed."}
- finally{btn.disabled=false;}
-};</script>
+  $("videoTitle").value="";$("videoPrompt").value="";$("videoUrl").value="";$("videoThumbUrl").value="";$("videoPreview").removeAttribute("src");$("videoPreview").load();$("videoPreviewBox").classList.add("hidden");$("videoFeatured").checked=false;
+  msg.textContent="Video published ✓";await load();
+ }catch(e){console.error(e);msg.textContent=e.message||"Video publish failed."}finally{btn.disabled=false}
+};
+</script>
 </body>
 </html>
