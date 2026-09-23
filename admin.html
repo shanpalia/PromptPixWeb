@@ -69,15 +69,15 @@ main{max-width:1200px;margin:auto;padding:28px 5% 60px}.top{display:flex;justify
 <input id="videoTitle" placeholder="Video title">
 <select id="videoCategory"><option>Video</option><option>Cinematic</option><option>Product</option><option>Portrait</option><option>Nature</option><option>Anime</option><option>Fantasy</option><option>Social</option><option>AI</option></select>
 <textarea id="videoPrompt" class="full" placeholder="Enter the complete AI video prompt"></textarea>
-<input id="videoUrl" type="url" class="full" placeholder="Video URL (MP4/WebM/HLS public URL)">
+<input id="videoUrl" type="url" class="full" placeholder="Generated video URL will appear here" readonly>
 <input id="videoThumbUrl" type="url" class="full" placeholder="Optional thumbnail image URL">
 <select id="videoDuration"><option value="3">3 seconds</option><option value="5" selected>5 seconds</option><option value="10">10 seconds</option><option value="15">15 seconds</option></select>
 <select id="videoRatio"><option value="16:9">16:9</option><option value="9:16">9:16</option><option value="1:1">1:1</option></select>
 <label class="full" style="display:flex;align-items:center;gap:9px"><input id="videoFeatured" type="checkbox" style="width:auto"> Featured video</label>
 <div class="full mediaPreview hidden" id="videoPreviewBox"><div class="muted" style="margin-bottom:8px">Preview</div><video id="videoPreview" controls playsinline preload="metadata"></video></div>
 </div>
-<div class="row"><button class="btn" id="previewVideo">Preview Video</button><button class="btn" id="publishVideo">Publish Video</button><span class="msg" id="videoMsg"></span></div>
-<div class="notice" style="margin-top:14px">For this first dashboard flow, the admin adds the generated video's real public URL. The homepage will immediately show published records where <b>type = video</b>.</div>
+<div class="row"><button class="btn" id="generateVideo">🎬 Generate Video</button><button class="btn logout" id="previewVideo">Preview Video</button><button class="btn" id="publishVideo">Publish Video</button><span class="msg" id="videoMsg"></span></div>
+<div class="notice" style="margin-top:14px">Video generation is handled by the PromptPix Cloudflare Worker. The generated public video URL is returned to this dashboard; no video URL needs to be entered manually.</div>
 </div>
 </section>
 
@@ -171,14 +171,31 @@ $("publish").onclick=async()=>{
 };
 
 $("previewVideo").onclick=()=>{
- const url=$("videoUrl").value.trim();if(!url){$("videoMsg").textContent="Enter a video URL first.";return}
+ const url=$("videoUrl").value.trim();if(!url){$("videoMsg").textContent="Generate a video first.";return}
  $("videoPreview").src=url;$("videoPreview").poster=$("videoThumbUrl").value.trim();$("videoPreviewBox").classList.remove("hidden");$("videoMsg").textContent="Video preview loaded.";
+};
+$("generateVideo").onclick=async()=>{
+ const msg=$("videoMsg"),btn=$("generateVideo"),prompt=$("videoPrompt").value.trim();
+ if(!prompt){msg.textContent="Enter a video prompt first.";return}
+ if(prompt.length>1000){msg.textContent="Video prompt must be 1000 characters or less.";return}
+ btn.disabled=true;msg.textContent="Generating video… this can take a while.";
+ try{
+  const ratio=$("videoRatio").value;
+  const response=await fetch(AI_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+   type:"video",prompt,duration:Number($("videoDuration").value),ratio
+  })});
+  const data=await response.json();if(!response.ok)throw new Error(data.error||"Video generation failed.");
+  if(!data.videoUrl)throw new Error("No video URL was returned.");
+  $("videoUrl").value=data.videoUrl;$("videoPreview").src=data.videoUrl;$("videoPreview").poster=$("videoThumbUrl").value.trim();$("videoPreviewBox").classList.remove("hidden");
+  msg.textContent="Video generated ✓ Review it, then publish.";
+ }catch(e){console.error(e);msg.textContent=e.message||"Video generation failed."}finally{btn.disabled=false}
 };
 $("videoUrl").addEventListener("input",()=>{const url=$("videoUrl").value.trim();if(url){$("videoPreview").src=url;$("videoPreview").poster=$("videoThumbUrl").value.trim();$("videoPreviewBox").classList.remove("hidden")}});
 $("publishVideo").onclick=async()=>{
  const msg=$("videoMsg");msg.textContent="";if(!user){msg.textContent="Please sign in again.";return}
  const title=$("videoTitle").value.trim(),prompt=$("videoPrompt").value.trim(),videoUrl=$("videoUrl").value.trim();
- if(!title||!prompt||!videoUrl){msg.textContent="Title, prompt and video URL are required.";return}
+ if(!title||!prompt){msg.textContent="Title and prompt are required.";return}
+ if(!videoUrl){msg.textContent="Generate the video first.";return}
  const btn=$("publishVideo");btn.disabled=true;msg.textContent="Publishing video…";
  try{
   await addDoc(collection(db,"prompts"),{
